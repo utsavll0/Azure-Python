@@ -14,6 +14,7 @@ def CreateAzureCredentials():
     subscriptionId = data['subscriptionId']
     return credentials,subscriptionId
 
+
 def main():
     RESOURCE_GROUP_NAME = "VM-Test-RG"
     LOCATION = "centralus"
@@ -77,7 +78,7 @@ def main():
     nic_result = poller.result()
     print(f"Provisioned network interface client {nic_result.name}")
     print(f"Provisioning virtual machine {VM_NAME}; this operation might take a few minutes.")
-    poller = compute_client.virtual_machines.create_or_update(RESOURCE_GROUP_NAME, VM_NAME,
+    poller = compute_client.virtual_machines.begin_create_or_update(RESOURCE_GROUP_NAME, VM_NAME,
         {
             "location": LOCATION,
             "storage_profile": {
@@ -105,6 +106,19 @@ def main():
     )
     vm_result = poller.result()
     print(f"Provisioned virtual machine {vm_result.name}")
+
+    #Start VM
+    async_start_vm = compute_client.virtual_machines.begin_start(RESOURCE_GROUP_NAME,vm_name=VM_NAME)
+    async_start_vm.wait()
+
+    #Stop VM
+    async_stop_vm = compute_client.virtual_machines.begin_power_off(resource_group_name=RESOURCE_GROUP_NAME,vm_name=VM_NAME)
+    async_stop_vm.wait()
+
+    #Delete VM
+    async_delete_vm = compute_client.virtual_machines.begin_delete(resource_group_name=RESOURCE_GROUP_NAME,vm_name=VM_NAME)
+    async_delete_vm.wait()
+    
 
     
 if __name__ == "__main__":
